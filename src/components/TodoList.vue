@@ -13,23 +13,23 @@
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs">
         <li class="nav-item">
-          <a class="nav-link active" href="#">全部</a>
+          <a class="nav-link" :class="{'active': visibility== 'all'}" @click="visibility = 'all'" href="#">全部</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="#">進行中</a>
+          <a class="nav-link " :class="{'active': visibility== 'active'}" @click="visibility = 'active'" href="#">進行中</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">已完成</a>
+          <a class="nav-link" :class="{'active': visibility== 'completed'}" @click="visibility = 'completed'" href="#">已完成</a>
         </li>
       </ul>
     </div>
     <ul class="list-group list-group-flush text-left">
-      <li class="list-group-item" v-for="item in todos">
-        <div class="d-flex">
+      <li class="list-group-item" v-for="item in filteredTodos" @dblclick="editTodo(item)">
+        <div class="d-flex" v-if="item.id !== cacheTodo.id">
           <div class="form-check">
-            <input type="checkbox" class="form-check-input" v-model="item.complated" :id="item.id">
+            <input type="checkbox" class="form-check-input" v-model="item.completed" :id="item.id">
             <label class="form-check-label" 
-            :class="{'completed': item.complated}"
+            :class="{'completed': item.completed}"
             :for="item.id">
               {{item.title}}
             </label>
@@ -38,23 +38,19 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
+
+         <input type="text" class="form-control" 
+         v-model="cacheTitle"
+         @keyup.esc="cancelEdit"
+         @keyup.enter="doneEdit(item)"
+         v-if="item.id === cacheTodo.id">
+
       </li>
+      
       <!-- <li class="list-group-item">
-        <div class="d-flex">
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="a1">
-            <label class="form-check-label completed" for="a1">
-              Cras justo odio
-            </label>
-          </div>
-          <button type="button" class="close ml-auto" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      </li> -->
-      <li class="list-group-item">
         <input type="text" class="form-control">
-      </li>
+      </li> -->
+
     </ul>
     <div class="card-footer d-flex justify-content-between">
       <span>還有 3 筆任務未完成</span>
@@ -74,14 +70,17 @@ export default {
                     {
                         id: '1',
                         title:'這是一個很長很長故事',
-                        complated: false
+                        completed: false
                     },
                     {
                         id: '2',
                         title:'無敵飄髮哥',
-                        complated: false
+                        completed: false
                     },
-                ]
+                ],
+                cacheTodo:{},
+                cacheTitle: '',
+                visibility: 'all'
             }
         },
     methods:{
@@ -106,6 +105,44 @@ export default {
             })
             vm.todos.splice(newIndex, 1)
         },
+        editTodo(item){
+            this.cacheTodo = item;
+            this.cacheTitle = item.title
+
+        },
+        cancelEdit(){
+          this.cacheTodo = {}
+        },
+        doneEdit(item){
+          item.title = this.cacheTitle;
+          this.cacheTitle = '';
+          this.cacheTodo = {}
+        }
+    },
+    computed:{
+      filteredTodos(){
+        if(this.visibility == 'all'){
+           return this.todos;
+        }else if(this.visibility == 'active'){
+            var newTodos = [];
+            this.todos.forEach(function(item){
+              if(!item.completed){
+                newTodos.push(item)
+              }
+            })
+            return newTodos
+        }else if(this.visibility == 'completed'){
+            var newTodos = [];
+            this.todos.forEach(function(item){
+              if(item.completed){
+                newTodos.push(item)
+              }
+            })
+            return newTodos
+        }
+       
+      }
+
     }
 }
 </script>
